@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ltd.newbee.mall.dao.MallOrderMapper">
+    <resultMap id="BaseResultMap" type="ltd.newbee.mall.entity.MallOrder">
+        <id column="order_id"  property="orderId"/>
+        <result column="order_no"  property="orderNo"/>
+        <result column="user_id"  property="userId"/>
+        <result column="total_price"  property="totalPrice"/>
+        <result column="order_status"  property="orderStatus"/>
+        <result column="is_deleted"  property="isDeleted"/>
+        <result column="create_time"  property="createTime"/>
+        <result column="update_time"  property="updateTime"/>
+        <result column="express_fee"  property="expressFee"/>
+        <result column="express_status"  property="expressStatus"/>
+        <result column="remark"  property="remark"/>
+        <result column="order_date"  property="orderDate"/>
+        <result column="op_user_id"  property="opUserId"/>
+        <result column="pay_type"  property="payType"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    order_id, order_no, user_id, total_price, order_status,order_date,op_user_id,pay_type,
+     is_deleted, create_time, update_time,express_fee,express_status,remark
+  </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mall_order
+        where order_id = #{orderId}
+    </select>
+    <select id="selectByOrderNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mall_order
+        where order_no = #{orderNo}
+          and is_deleted=0 limit 1
+    </select>
+    <select id="selectByPrimaryKeys" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mall_order
+        where order_id in
+        <foreach collection="orderIds" item="item" index="index"
+                 open="(" separator="," close=")">#{item}
+        </foreach>
+    </select>
+    <select id="findOrderList" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from mall_order
+        <where>
+            <if test="orderNo!=null and orderNo!=''">
+                and order_no = #{orderNo}
+            </if>
+            <if test="userId!=null and userId!=''">
+                and user_id = #{userId}
+            </if>
+            <if test="orderStatus!=null">
+                and order_status = #{orderStatus}
+            </if>
+            <if test="isDeleted!=null and isDeleted!=''">
+                and is_deleted = #{isDeleted}
+            </if>
+            <if test="startTime != null and startTime.trim() != ''">
+                and order_date &gt; #{startTime}
+            </if>
+            <if test="endTime != null and endTime.trim() != ''">
+                and order_date &lt; #{endTime}
+            </if>
+            <if test="expressStatus != null">
+                and express_status = #{expressStatus}
+            </if>
+        </where>
+        order by order_date desc
+        <if test="start!=null and limit!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="getTotalOrders" parameterType="Map" resultType="int">
+        select count(*) from mall_order
+        <where>
+            <if test="orderNo!=null and orderNo!=''">
+                and order_no = #{orderNo}
+            </if>
+            <if test="userId!=null and userId!=''">
+                and user_id = #{userId}
+            </if>
+            <if test="orderStatus!=null">
+                and order_status = #{orderStatus}
+            </if>
+            <if test="isDeleted!=null and isDeleted!=''">
+                and is_deleted = #{isDeleted}
+            </if>
+            <if test="startTime != null and startTime.trim() != ''">
+                and order_date &gt; #{startTime}
+            </if>
+            <if test="endTime != null and endTime.trim() != ''">
+                and order_date &lt; #{endTime}
+            </if>
+            <if test="expressStatus != null">
+                and express_status = #{expressStatus}
+            </if>
+        </where>
+    </select>
+
+
+    <update id="checkOut">
+        update mall_order
+        set order_status = 3,update_time = now()
+        where order_id in
+        <foreach collection="orderIds" item="item" index="index"
+                 open="(" separator="," close=")">#{item}
+        </foreach>
+    </update>
+    <update id="closeOrder">
+        update mall_order
+        set order_status = #{orderStatus},update_time = now()
+        where order_id in
+        <foreach collection="orderIds" item="item" index="index"
+                 open="(" separator="," close=")">#{item}
+        </foreach>
+    </update>
+
+</mapper>

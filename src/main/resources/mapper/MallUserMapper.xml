@@ -1,106 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-严肃声明：
-开源版本请务必保留此注释头信息，若删除我方将保留所有法律责任追究！
-本软件已申请软件著作权，受国家版权局知识产权以及国家计算机软件著作权保护！
-可正常分享和学习源码，不得用于违法犯罪活动，违者必究！
-Copyright (c) 2019-2021 十三 all rights reserved.
-版权所有，侵权必究！
--->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="ltd.newbee.mall.dao.MallUserMapper">
-    <resultMap id="BaseResultMap" type="ltd.newbee.mall.entity.MallUser">
-        <id column="user_id" jdbcType="BIGINT" property="userId"/>
-        <result column="nick_name" jdbcType="VARCHAR" property="nickName"/>
-        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
-        <result column="password_md5" jdbcType="VARCHAR" property="passwordMd5"/>
-        <result column="introduce_sign" jdbcType="VARCHAR" property="introduceSign"/>
-        <result column="is_deleted" jdbcType="TINYINT" property="isDeleted"/>
-        <result column="locked_flag" jdbcType="TINYINT" property="lockedFlag"/>
-        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+<mapper namespace="ltd.newbee.mall.dao.UserMapper">
+    <resultMap id="BaseResultMap" type="ltd.newbee.mall.entity.User">
+        <id column="user_id"  property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_level" property="userLevel"/>
+        <result column="user_cost" property="userCost"/>
+        <result column="contact_name" property="contactName"/>
+        <result column="mobile" property="mobile"/>
+        <result column="address" property="address"/>
+        <result column="remark" property="remark"/>
+        <result column="is_deleted"  property="isDeleted"/>
+        <result column="create_time"  property="createTime"/>
     </resultMap>
+
+    
     <sql id="Base_Column_List">
-    user_id, nick_name, login_name, password_md5, introduce_sign, is_deleted,
-    locked_flag, create_time
+    user_id, user_name,user_level, user_cost,contact_name, mobile,address, remark, is_deleted, create_time
   </sql>
 
-    <select id="findMallUserList" parameterType="Map" resultMap="BaseResultMap">
+    <select id="findUserList" parameterType="Map" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from tb_newbee_mall_user
+        from user
         where 1=1
-        <if test="loginName!=null and loginName!=''">
-            and login_name = #{loginName}
+        and is_deleted = 0
+        <if test="params.userId!=null">
+            and user_id = #{params.userId}
+        </if>
+        <if test="params.userLevel!=null ">
+            and user_level = #{params.userLevel}
+        </if>
+        <if test="params.userName!=null and params.userName!=''">
+            and user_name = #{params.userName}
+        </if>
+        <if test="params.contactName!=null and params.contactName!=''">
+            and contact_name = #{params.contactName}
+        </if>
+        <if test="params.mobile!=null and params.mobile!=''">
+            and contact_name = #{params.mobile}
         </if>
         order by create_time desc
-        <if test="start!=null and limit!=null">
-            limit #{start},#{limit}
+        <if test="pageUtil.start!=null and pageUtil.limit!=null">
+            limit #{pageUtil.start},#{pageUtil.limit}
         </if>
     </select>
 
-    <select id="getTotalMallUsers" parameterType="Map" resultType="int">
-        select count(*) from tb_newbee_mall_user
+    <select id="getTotalUsers" parameterType="Map" resultType="int">
+        select count(*) from user
         where 1=1
-        <if test="loginName!=null and loginName!=''">
-            and login_name = #{loginName}
+        and is_deleted = 0
+        <if test="params.userId!=null">
+            and user_id = #{params.userId}
+        </if>
+        <if test="params.userLevel!=null ">
+            and user_level = #{params.userLevel}
+        </if>
+        <if test="params.userName!=null and params.userName!=''">
+            and user_name = #{params.userName}
+        </if>
+        <if test="params.contactName!=null and params.contactName!=''">
+            and contact_name = #{params.contactName}
+        </if>
+        <if test="params.mobile!=null and params.mobile!=''">
+            and contact_name = #{params.mobile}
         </if>
     </select>
 
     <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from tb_newbee_mall_user
-        where user_id = #{userId,jdbcType=BIGINT} and is_deleted = 0
+        from user
+        where user_id = #{userId}
+          and is_deleted = 0
     </select>
-    <select id="selectByLoginName" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from tb_newbee_mall_user
-        where login_name = #{loginName} and is_deleted = 0
-    </select>
-    <select id="selectByLoginNameAndPasswd" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from tb_newbee_mall_user
-        where login_name = #{loginName} and password_md5 = #{password} and is_deleted = 0
-    </select>
+  
     <update id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    update tb_newbee_mall_user set is_deleted = 1
-    where user_id = #{userId,jdbcType=BIGINT} and is_deleted = 0
+    update user set is_deleted = 1
+    where user_id = #{userId} and is_deleted = 0
   </update>
-    <insert id="insert" parameterType="ltd.newbee.mall.entity.MallUser">
-    insert into tb_newbee_mall_user (user_id, nick_name, login_name, 
-      password_md5, introduce_sign,
-      is_deleted, locked_flag, create_time
+    <insert id="insert" parameterType="ltd.newbee.mall.entity.User">
+    insert into user (user_id, user_name,user_level,user_cost, contact_name,
+      mobile,address, remark,
+      is_deleted,  create_time
       )
-    values (#{userId,jdbcType=BIGINT}, #{nickName,jdbcType=VARCHAR}, #{loginName,jdbcType=VARCHAR}, 
-      #{passwordMd5,jdbcType=VARCHAR}, #{introduceSign,jdbcType=VARCHAR},
-      #{isDeleted,jdbcType=TINYINT}, #{lockedFlag,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}
+    values (#{userId}, #{userName},#{userLevel},#{userCost}, #{contactName},
+      #{mobile},#{address}, #{remark},
+      #{isDeleted},  #{createTime}
       )
   </insert>
-    <insert id="insertSelective" parameterType="ltd.newbee.mall.entity.MallUser">
-        insert into tb_newbee_mall_user
+    <insert id="insertSelective" parameterType="ltd.newbee.mall.entity.User">
+        insert into user
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">
                 user_id,
             </if>
-            <if test="nickName != null">
-                nick_name,
+            <if test="userName != null">
+                user_name,
             </if>
-            <if test="loginName != null">
-                login_name,
+            <if test="userLevel != null">
+                user_level,
             </if>
-            <if test="passwordMd5 != null">
-                password_md5,
+            <if test="userCost != null">
+                user_cost,
             </if>
-            <if test="introduceSign != null">
-                introduce_sign,
+            <if test="contactName != null">
+                contact_name,
+            </if>
+            <if test="mobile != null">
+                mobile,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="remark != null">
+                remark,
             </if>
             <if test="isDeleted != null">
                 is_deleted,
-            </if>
-            <if test="lockedFlag != null">
-                locked_flag,
             </if>
             <if test="createTime != null">
                 create_time,
@@ -108,74 +125,82 @@ Copyright (c) 2019-2021 十三 all rights reserved.
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">
-                #{userId,jdbcType=BIGINT},
+                #{userId},
             </if>
-            <if test="nickName != null">
-                #{nickName,jdbcType=VARCHAR},
+            <if test="userName != null">
+                #{userName},
             </if>
-            <if test="loginName != null">
-                #{loginName,jdbcType=VARCHAR},
+            <if test="userLevel != null">
+                #{userLevel},
             </if>
-            <if test="passwordMd5 != null">
-                #{passwordMd5,jdbcType=VARCHAR},
+            <if test="userCost != null">
+                #{userCost},
             </if>
-            <if test="introduceSign != null">
-                #{introduceSign,jdbcType=VARCHAR},
+            <if test="contactName != null">
+                #{contactName},
+            </if>
+            <if test="mobile != null">
+                #{mobile},
+            </if>
+            <if test="address != null">
+                #{address},
+            </if>
+            <if test="remark != null">
+                #{remark},
             </if>
             <if test="isDeleted != null">
-                #{isDeleted,jdbcType=TINYINT},
-            </if>
-            <if test="lockedFlag != null">
-                #{lockedFlag,jdbcType=TINYINT},
+                #{isDeleted},
             </if>
             <if test="createTime != null">
-                #{createTime,jdbcType=TIMESTAMP},
+                #{createTime},
             </if>
         </trim>
     </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="ltd.newbee.mall.entity.MallUser">
-        update tb_newbee_mall_user
+    <update id="updateByPrimaryKeySelective" parameterType="ltd.newbee.mall.entity.User">
+        update user
         <set>
-            <if test="nickName != null">
-                nick_name = #{nickName,jdbcType=VARCHAR},
+            <if test="userName != null">
+                user_name = #{userName},
             </if>
-            <if test="loginName != null">
-                login_name = #{loginName,jdbcType=VARCHAR},
+            <if test="userLevel != null">
+                user_level = #{userLevel},
             </if>
-            <if test="passwordMd5 != null">
-                password_md5 = #{passwordMd5,jdbcType=VARCHAR},
+            <if test="userCost != null">
+                user_cost =  #{userCost},
             </if>
-            <if test="introduceSign != null">
-                introduce_sign = #{introduceSign,jdbcType=VARCHAR},
+            <if test="contactName != null">
+                contact_name = #{contactName},
+            </if>
+            <if test="mobile != null">
+                mobile = #{mobile},
+            </if>
+            <if test="address != null">
+                address = #{address},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
             </if>
             <if test="isDeleted != null">
-                is_deleted = #{isDeleted,jdbcType=TINYINT},
-            </if>
-            <if test="lockedFlag != null">
-                locked_flag = #{lockedFlag,jdbcType=TINYINT},
+                is_deleted = #{isDeleted},
             </if>
             <if test="createTime != null">
-                create_time = #{createTime,jdbcType=TIMESTAMP},
+                create_time = #{createTime},
             </if>
         </set>
-        where user_id = #{userId,jdbcType=BIGINT}
+        where user_id = #{userId}
     </update>
-    <update id="updateByPrimaryKey" parameterType="ltd.newbee.mall.entity.MallUser">
-    update tb_newbee_mall_user
-    set nick_name = #{nickName,jdbcType=VARCHAR},
-      login_name = #{loginName,jdbcType=VARCHAR},
-      password_md5 = #{passwordMd5,jdbcType=VARCHAR},
-      introduce_sign = #{introduceSign,jdbcType=VARCHAR},
-      is_deleted = #{isDeleted,jdbcType=TINYINT},
-      locked_flag = #{lockedFlag,jdbcType=TINYINT},
-      create_time = #{createTime,jdbcType=TIMESTAMP}
-    where user_id = #{userId,jdbcType=BIGINT}
+    <update id="updateByPrimaryKey" parameterType="ltd.newbee.mall.entity.User">
+    update user
+    set user_name = #{userName},
+      user_level = #{userLevel},
+      user_cost =  #{userCost},
+      contact_name = #{contactName},
+      mobile = #{mobile},
+      address = #{address},
+      remark = #{remark},
+      is_deleted = #{isDeleted},
+      create_time = #{createTime}
+    where user_id = #{userId}
   </update>
-    <update id="lockUserBatch">
-        update tb_newbee_mall_user
-        set locked_flag=#{lockStatus} where user_id in
-        <foreach item="id" collection="ids" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </update>
+
 </mapper>

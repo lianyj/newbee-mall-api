@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ltd.newbee.mall.dao.GoodsInfoMapper">
+    <resultMap id="BaseResultMap" type="ltd.newbee.mall.entity.GoodsInfo">
+        <id column="goods_id"  property="goodsId"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="goods_intro" property="goodsIntro"/>
+        <result column="original_price"  property="originalPrice"/>
+        <result column="stock_num"  property="stockNum"/>
+        <result column="tag" property="tag"/>
+        <result column="goods_sell_status"  property="goodsSellStatus"/>
+        <result column="remark"  property="remark"/>
+        <result column="sphere_min"  property="sphereMin"/>
+        <result column="sphere_max"  property="sphereMax"/>
+        <result column="cylinder_min"  property="cylinderMin"/>
+        <result column="cylinder_max"  property="cylinderMax"/>
+        <result column="create_user"  property="createUser"/>
+        <result column="create_time"  property="createTime"/>
+        <result column="update_user"  property="updateUser"/>
+        <result column="update_time"  property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+    goods_id, goods_name, goods_intro, original_price,
+     stock_num, tag, goods_sell_status, create_user, create_time, update_user, 
+    update_time,remark,sphere_min,sphere_max,cylinder_min,cylinder_max
+  </sql>
+
+
+    <insert id="batchInsert">
+        INSERT INTO goods_info(goods_name, goods_intro,original_price,stock_num,
+                      remark,sphere_min,sphere_max,cylinder_min,cylinder_max)
+        VALUES
+        <foreach collection="GoodsList" item="goods" separator=",">
+            (#{goods.goodsName},#{goods.goodsIntro},#{goods.originalPrice},#{goods.stockNum},
+            #{goods.remark},#{goods.sphereMin},#{goods.sphereMax},#{goods.cylinderMin},#{goods.cylinderMax},
+             )
+        </foreach>
+    </insert>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from goods_info
+        where goods_id = #{goodsId}
+    </select>
+    <select id="selectByCategoryIdAndName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from goods_info
+        where goods_name = #{goodsName} 
+    </select>
+    <update id="updateStockNum">
+        <foreach collection="stockNumDTOS" item="stockNumDTO">
+            update goods_info set stock_num = stock_num-#{stockNumDTO.goodsCount}
+            where goods_id = #{stockNumDTO.goodsId} and stock_num>=#{stockNumDTO.goodsCount} and goods_sell_status = 0;
+        </foreach>
+    </update>
+    <update id="batchUpdateSellStatus">
+        update goods_info
+        set goods_sell_status=#{sellStatus},update_time=now() where goods_id in
+        <foreach item="id" collection="orderIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <select id="findGoodsList" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from goods_info
+        <where>
+            <if test="goodsName!=null and goodsName!=''">
+                and goods_name like CONCAT('%',#{goodsName},'%')
+            </if>
+            <if test="goodsSellStatus!=null ">
+                and goods_sell_status = #{goodsSellStatus}
+            </if>
+            <if test="tag!=null and tag!=''">
+                and tag like CONCAT('%',#{tag},'%')
+            </if>
+            <if test="startTime != null and startTime.trim() != ''">
+                and create_time &gt; #{startTime}
+            </if>
+            <if test="endTime != null and endTime.trim() != ''">
+                and create_time &lt; #{endTime}
+            </if>
+        </where>
+        order by goods_id desc
+        <if test="start!=null and limit!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="findGoodsListBySearch" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from goods_info
+        <where>
+            <if test="keyword!=null and keyword!=''">
+                and (goods_name like CONCAT('%',#{keyword},'%') or goods_intro like CONCAT('%',#{keyword},'%'))
+            </if>
+            <if test="goodsSellStatus!=null">
+                and goods_sell_status = #{goodsSellStatus}
+            </if>
+        </where>
+        <if test="orderBy!=null and orderBy!=''">
+            <choose>
+                <when test="orderBy == 'new'">
+                    <!-- 按照发布时间倒序排列 -->
+                    order by goods_id desc
+                </when>
+                <when test="orderBy == 'price'">
+                    <!-- 按照售价从小到大排列 -->
+                    order by original_price asc
+                </when>
+                <otherwise>
+                    <!-- 默认按照库存数量从大到小排列 -->
+                    order by stock_num desc
+                </otherwise>
+            </choose>
+        </if>
+        <if test="start!=null and limit!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="getTotalGoodsBySearch" parameterType="Map" resultType="int">
+        select count(*) from goods_info
+        <where>
+            <if test="keyword!=null and keyword!=''">
+                and (goods_name like CONCAT('%',#{keyword},'%') or goods_intro like CONCAT('%',#{keyword},'%'))
+            </if>
+            <if test="goodsSellStatus!=null">
+                and goods_sell_status = #{goodsSellStatus}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByPrimaryKeys" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from goods_info
+        where goods_id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        order by field(goods_id,
+        <foreach item="id" collection="list" separator=",">
+            #{id}
+        </foreach>
+        );
+    </select>
+    <select id="getTotalGoods" parameterType="Map" resultType="int">
+        select count(*) from goods_info
+        <where>
+            <if test="goodsName!=null and goodsName!=''">
+                and goods_name like CONCAT('%',#{goodsName},'%')
+            </if>
+            <if test="goodsSellStatus!=null ">
+                and goods_sell_status = #{goodsSellStatus}
+            </if>
+            <if test="tag!=null and tag!=''">
+                and tag like CONCAT('%',#{tag},'%')
+            </if>
+            <if test="startTime != null and startTime.trim() != ''">
+                and create_time &gt; #{startTime}
+            </if>
+            <if test="endTime != null and endTime.trim() != ''">
+                and create_time &lt; #{endTime}
+            </if>
+        </where>
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from goods_info
+    where goods_id = #{goodsId}
+  </delete>
+    <insert id="insert" parameterType="ltd.newbee.mall.entity.GoodsInfo">
+    insert into goods_info (goods_id, goods_name, goods_intro,
+       original_price,
+       stock_num, tag, 
+      goods_sell_status, create_user, create_time, 
+      update_user, update_time,
+       remark,sphere_min,sphere_max,cylinder_min,cylinder_max
+      )
+    values (#{goodsId}, #{goodsName}, #{goodsIntro}, 
+        #{originalPrice},
+       #{stockNum}, #{tag}, 
+      #{goodsSellStatus}, #{createUser}, #{createTime}, 
+      #{updateUser}, #{updateTime},
+            #{remark},#{sphereMin},#{sphereMax},#{cylinderMin},#{cylinderMax}
+      )
+  </insert>
+    <insert id="insertSelective" parameterType="ltd.newbee.mall.entity.GoodsInfo">
+        insert into goods_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="goodsId != null">
+                goods_id,
+            </if>
+            <if test="goodsName != null">
+                goods_name,
+            </if>
+            <if test="goodsIntro != null">
+                goods_intro,
+            </if>
+            <if test="originalPrice != null">
+                original_price,
+            </if>
+            <if test="stockNum != null">
+                stock_num,
+            </if>
+            <if test="tag != null">
+                tag,
+            </if>
+            <if test="goodsSellStatus != null">
+                goods_sell_status,
+            </if>
+            <if test="createUser != null">
+                create_user,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateUser != null">
+                update_user,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="sphereMin != null">
+                sphere_min,
+            </if>
+            <if test="sphereMax != null">
+                sphere_max,
+            </if>
+            <if test="cylinderMin != null">
+                cylinder_min,
+            </if>
+            <if test="cylinderMax != null">
+                cylinder_max,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="goodsId != null">
+                #{goodsId},
+            </if>
+            <if test="goodsName != null">
+                #{goodsName},
+            </if>
+            <if test="goodsIntro != null">
+                #{goodsIntro},
+            </if>
+            <if test="originalPrice != null">
+                #{originalPrice},
+            </if>
+            <if test="stockNum != null">
+                #{stockNum},
+            </if>
+            <if test="tag != null">
+                #{tag},
+            </if>
+            <if test="goodsSellStatus != null">
+                #{goodsSellStatus},
+            </if>
+            <if test="createUser != null">
+                #{createUser},
+            </if>
+            <if test="createTime != null">
+                #{createTime},
+            </if>
+            <if test="updateUser != null">
+                #{updateUser},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime},
+            </if>
+            <if test="remark != null">
+                #{remark},
+            </if>
+            <if test="sphereMin != null">
+                #{sphereMin},
+            </if>
+            <if test="sphereMax != null">
+                #{sphereMax},
+            </if>
+            <if test="cylinderMin != null">
+                #{cylinderMin},
+            </if>
+            <if test="cylinderMax != null">
+                #{cylinderMax},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="ltd.newbee.mall.entity.GoodsInfo">
+        update goods_info
+        <set>
+            <if test="goodsName != null">
+                goods_name = #{goodsName},
+            </if>
+            <if test="goodsIntro != null">
+                goods_intro = #{goodsIntro},
+            </if>
+            <if test="originalPrice != null">
+                original_price = #{originalPrice},
+            </if>
+            <if test="stockNum != null">
+                stock_num = #{stockNum},
+            </if>
+            <if test="tag != null">
+                tag = #{tag},
+            </if>
+            <if test="goodsSellStatus != null">
+                goods_sell_status = #{goodsSellStatus},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="sphereMin != null">
+                sphere_min = #{sphereMin},
+            </if>
+            <if test="sphereMax != null">
+                sphere_max = #{sphereMax},
+            </if>
+            <if test="cylinderMin != null">
+                cylinder_min = #{cylinderMin},
+            </if>
+            <if test="cylinderMax != null">
+                cylinder_max = #{cylinderMax},
+            </if>
+        </set>
+        where goods_id = #{goodsId}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="ltd.newbee.mall.entity.GoodsInfo">
+    update goods_info
+    set goods_name = #{goodsName},
+      goods_intro = #{goodsIntro},
+      original_price = #{originalPrice},
+      stock_num = #{stockNum},
+      tag = #{tag},
+      goods_sell_status = #{goodsSellStatus},
+      create_user = #{createUser},
+      create_time = #{createTime},
+      update_user = #{updateUser},
+      update_time = #{updateTime},
+        remark = #{remark},
+        sphere_min = #{sphereMin},
+        sphere_max = #{sphereMax},
+        cylinder_min = #{cylinderMin},
+        cylinder_max = #{cylinderMax}
+    where goods_id = #{goodsId}
+  </update>
+    <update id="updateByPrimaryKey" parameterType="ltd.newbee.mall.entity.GoodsInfo">
+    update goods_info
+    set goods_name = #{goodsName},
+      goods_intro = #{goodsIntro},
+      original_price = #{originalPrice},
+      stock_num = #{stockNum},
+      tag = #{tag},
+      goods_sell_status = #{goodsSellStatus},
+      create_user = #{createUser},
+      create_time = #{createTime},
+      update_user = #{updateUser},
+      update_time = #{updateTime},
+        remark = #{remark},
+        sphere_min = #{sphereMin},
+        sphere_max = #{sphereMax},
+        cylinder_min = #{cylinderMin},
+        cylinder_max = #{cylinderMax}
+    where goods_id = #{goodsId}
+  </update>
+</mapper>

@@ -1,20 +1,13 @@
-/**
- * 严肃声明：
- * 开源版本请务必保留此注释头信息，若删除我方将保留所有法律责任追究！
- * 本系统已申请软件著作权，受国家版权局知识产权以及国家计算机软件著作权保护！
- * 可正常分享和学习源码，不得用于违法犯罪活动，违者必究！
- * Copyright (c) 2019-2021 十三 all rights reserved.
- * 版权所有，侵权必究！
- */
+
 package ltd.newbee.mall.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import ltd.newbee.mall.common.ServiceResultEnum;
 import ltd.newbee.mall.dao.AdminUserMapper;
-import ltd.newbee.mall.dao.NewBeeAdminUserTokenMapper;
+import ltd.newbee.mall.dao.AdminUserTokenMapper;
 import ltd.newbee.mall.entity.AdminUser;
 import ltd.newbee.mall.entity.AdminUserToken;
 import ltd.newbee.mall.service.AdminUserService;
-import ltd.newbee.mall.util.MD5Util;
 import ltd.newbee.mall.util.NumberUtil;
 import ltd.newbee.mall.util.SystemUtil;
 import org.springframework.stereotype.Service;
@@ -23,13 +16,13 @@ import javax.annotation.Resource;
 import java.util.Date;
 
 @Service
-public class AdminUserServiceImpl implements AdminUserService {
+public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser>  implements AdminUserService {
 
     @Resource
     private AdminUserMapper adminUserMapper;
 
     @Resource
-    private NewBeeAdminUserTokenMapper newBeeAdminUserTokenMapper;
+    private AdminUserTokenMapper adminUserTokenMapper;
 
     @Override
     public String login(String userName, String password) {
@@ -37,7 +30,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (loginAdminUser != null) {
             //登录后即执行修改token的操作
             String token = getNewToken(System.currentTimeMillis() + "", loginAdminUser.getAdminUserId());
-            AdminUserToken adminUserToken = newBeeAdminUserTokenMapper.selectByPrimaryKey(loginAdminUser.getAdminUserId());
+            AdminUserToken adminUserToken = adminUserTokenMapper.selectByPrimaryKey(loginAdminUser.getAdminUserId());
             //当前时间
             Date now = new Date();
             //过期时间
@@ -49,7 +42,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                 adminUserToken.setUpdateTime(now);
                 adminUserToken.setExpireTime(expireTime);
                 //新增一条token数据
-                if (newBeeAdminUserTokenMapper.insertSelective(adminUserToken) > 0) {
+                if (adminUserTokenMapper.insertSelective(adminUserToken) > 0) {
                     //新增成功后返回
                     return token;
                 }
@@ -58,7 +51,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                 adminUserToken.setUpdateTime(now);
                 adminUserToken.setExpireTime(expireTime);
                 //更新
-                if (newBeeAdminUserTokenMapper.updateByPrimaryKeySelective(adminUserToken) > 0) {
+                if (adminUserTokenMapper.updateByPrimaryKeySelective(adminUserToken) > 0) {
                     //修改成功后返回
                     return token;
                 }
@@ -96,7 +89,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             if (originalPassword.equals(adminUser.getLoginPassword())) {
                 //设置新密码并修改
                 adminUser.setLoginPassword(newPassword);
-                if (adminUserMapper.updateByPrimaryKeySelective(adminUser) > 0 && newBeeAdminUserTokenMapper.deleteByPrimaryKey(loginUserId) > 0) {
+                if (adminUserMapper.updateByPrimaryKeySelective(adminUser) > 0 && adminUserTokenMapper.deleteByPrimaryKey(loginUserId) > 0) {
                     //修改成功且清空当前token则返回true
                     return true;
                 }
@@ -123,6 +116,6 @@ public class AdminUserServiceImpl implements AdminUserService {
 
     @Override
     public Boolean logout(Long adminUserId) {
-        return newBeeAdminUserTokenMapper.deleteByPrimaryKey(adminUserId) > 0;
+        return adminUserTokenMapper.deleteByPrimaryKey(adminUserId) > 0;
     }
 }
