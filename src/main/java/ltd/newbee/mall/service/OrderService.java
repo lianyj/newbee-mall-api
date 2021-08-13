@@ -3,6 +3,7 @@ package ltd.newbee.mall.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import ltd.newbee.mall.api.mall.param.OrderDetailParam;
+import ltd.newbee.mall.api.mall.param.OrderItemParam;
 import ltd.newbee.mall.api.mall.vo.OrderDetailVO;
 import ltd.newbee.mall.api.mall.vo.OrderItemVO;
 import ltd.newbee.mall.entity.MallOrder;
@@ -27,7 +28,7 @@ public interface OrderService extends IService<MallOrder> {
      * @param orderId
      * @return
      */
-    OrderDetailVO getOrderDetailByOrderId(Long orderId);
+    OrderDetailVO getOrderDetailByOrderId(Long orderId,Long adminUserId);
 
 
     /**
@@ -37,6 +38,7 @@ public interface OrderService extends IService<MallOrder> {
     String saveOrder(Long adminUserId, OrderDetailParam saveOrderParam);
 
 
+
     /**
      * 订单信息修改
      *
@@ -44,6 +46,7 @@ public interface OrderService extends IService<MallOrder> {
      */
     String updateOrderInfo(Long adminUserId, OrderDetailParam saveOrderParam);
 
+    String editOrderInfo(Long adminUserId, OrderDetailParam saveOrderParam);
 
     /**
      * 关闭订单
@@ -51,7 +54,19 @@ public interface OrderService extends IService<MallOrder> {
      * @param ids
      * @return
      */
-    String closeOrder(Long[] ids);
+    String closeOrder(Long id);
 
     List<OrderItemVO> getOrderItems(Long orderId);
+
+    String deleteItem(Long itemId);
+
+    String updateItem(Long adminUserId, OrderItemParam orderItemParam);
+
+    String addItem(Long adminUserId, OrderItemParam orderItemParam);
+
+    String changeOrderStatus(Long orderId,Integer orderStatus);
+
+    String changeExpressStatus(Long orderId,Integer expressStatus);
+
+
 }

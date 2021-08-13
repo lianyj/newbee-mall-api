@@ -1,6 +1,7 @@
 
 package ltd.newbee.mall.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import ltd.newbee.mall.common.ServiceResultEnum;
 import ltd.newbee.mall.dao.GoodsInfoMapper;
@@ -10,7 +11,6 @@ import ltd.newbee.mall.util.PageQueryUtil;
 import ltd.newbee.mall.util.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -31,22 +31,17 @@ public class GoodsInfoServiceImpl  extends ServiceImpl<GoodsInfoMapper, GoodsInf
 
     @Override
     public String saveGoods(GoodsInfo goods) {
-        if (goodsInfoMapper.insertSelective(goods) > 0) {
+        if (goodsInfoMapper.insert(goods) > 0) {
             return ServiceResultEnum.SUCCESS.getResult();
         }
         return ServiceResultEnum.DB_ERROR.getResult();
     }
 
-    @Override
-    public void batchSaveGoods(List<GoodsInfo> GoodsList) {
-        if (!CollectionUtils.isEmpty(GoodsList)) {
-            goodsInfoMapper.batchInsert(GoodsList);
-        }
-    }
+
 
     @Override
     public String updateGoods(GoodsInfo goods) {
-        GoodsInfo temp = goodsInfoMapper.selectByPrimaryKey(goods.getGoodsId());
+        GoodsInfo temp = goodsInfoMapper.selectById(goods.getGoodsId());
         if (temp == null) {
             return ServiceResultEnum.DATA_NOT_EXIST.getResult();
         }
@@ -60,7 +55,7 @@ public class GoodsInfoServiceImpl  extends ServiceImpl<GoodsInfoMapper, GoodsInf
 
     @Override
     public GoodsInfo getGoodsById(Long id) {
-        return goodsInfoMapper.selectByPrimaryKey(id);
+        return goodsInfoMapper.selectById(id);
     }
 
     @Override
@@ -68,4 +63,10 @@ public class GoodsInfoServiceImpl  extends ServiceImpl<GoodsInfoMapper, GoodsInf
         return goodsInfoMapper.batchUpdateSellStatus(ids, sellStatus) > 0;
     }
 
+    @Override
+    public List<GoodsInfo> getGoodAllList(){
+        LambdaQueryWrapper<GoodsInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(GoodsInfo::getGoodsSellStatus,0);
+        return goodsInfoMapper.selectList(queryWrapper);
+    }
 }

@@ -8,6 +8,7 @@ import ltd.newbee.mall.api.mall.param.UserRegisterParam;
 import ltd.newbee.mall.common.ServiceResultEnum;
 import ltd.newbee.mall.config.annotation.TokenToAdminUser;
 import ltd.newbee.mall.entity.AdminUserToken;
+import ltd.newbee.mall.entity.User;
 import ltd.newbee.mall.service.UserService;
 import ltd.newbee.mall.util.PageQueryUtil;
 import ltd.newbee.mall.util.Result;
@@ -17,8 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -106,4 +107,12 @@ public class AdminRegisterUserAPI {
         }
     }
 
+
+
+    @RequestMapping(value = "/user/allList",method = RequestMethod.GET)
+    @ApiOperation(value = "查询所有用户", notes = "")
+    public Result getUserAllList() {
+        List<User> users = userService.getUserAllList();
+        return ResultGenerator.genSuccessResult(users);
+    }
 }

@@ -4,17 +4,13 @@ package ltd.newbee.mall.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import ltd.newbee.mall.api.mall.param.OrderDetailParam;
+import ltd.newbee.mall.api.mall.param.OrderItemParam;
 import ltd.newbee.mall.api.mall.vo.OrderDetailVO;
 import ltd.newbee.mall.api.mall.vo.OrderItemVO;
 import ltd.newbee.mall.common.*;
 import ltd.newbee.mall.common.Exception;
-import ltd.newbee.mall.dao.GoodsInfoMapper;
-import ltd.newbee.mall.dao.OrderItemMapper;
-import ltd.newbee.mall.dao.MallOrderMapper;
-import ltd.newbee.mall.dao.UserMapper;
-import ltd.newbee.mall.entity.MallOrder;
-import ltd.newbee.mall.entity.OrderItem;
-import ltd.newbee.mall.entity.User;
+import ltd.newbee.mall.dao.*;
+import ltd.newbee.mall.entity.*;
 import ltd.newbee.mall.service.OrderService;
 import ltd.newbee.mall.util.BeanUtil;
 import ltd.newbee.mall.util.DateUtils;
@@ -26,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,48 +32,72 @@ import java.util.List;
 @Service
 public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> implements OrderService {
 
-    @Autowired
+    @Resource
     private MallOrderMapper mallOrderMapper;
-    @Autowired
+    @Resource
     private OrderItemMapper orderItemMapper;
-    @Autowired
+    @Resource
     private GoodsInfoMapper goodsInfoMapper;
-    @Autowired
+    @Resource
     private UserMapper userMapper;
+    @Resource
+    private AdminUserMapper adminUserMapper;
 
     @Override
-    public OrderDetailVO getOrderDetailByOrderId(Long orderId) {
-        MallOrder Order = mallOrderMapper.selectByPrimaryKey(orderId);
-        if (Order == null) {
+    public OrderDetailVO getOrderDetailByOrderId(Long orderId,Long adminUserId) {
+        MallOrder order = mallOrderMapper.selectById(orderId);
+        if (order == null) {
             Exception.fail(ServiceResultEnum.DATA_NOT_EXIST.getResult());
         }
-        User User = userMapper.selectById(Order.getUserId());
-        if (User == null) {
+        User user = userMapper.selectById(order.getUserId());
+        if (user == null) {
             Exception.fail(ServiceResultEnum.DATA_NOT_EXIST.getResult());
         }
+        OrderDetailVO OrderDetailVO = new OrderDetailVO();
+        //订单信息
+        OrderDetailVO.setOrderNo(order.getOrderNo());
+        OrderDetailVO.setOrderDate(order.getOrderDate());
+        OrderDetailVO.setExpressFee(order.getExpressFee());
+        OrderDetailVO.setRemark(order.getRemark());
+        OrderDetailVO.setOrderId(order.getOrderId());
+        //客户信息
+        OrderDetailVO.setUserId(user.getUserId());
+        OrderDetailVO.setUserName(user.getUserName());
+        OrderDetailVO.setContactName(user.getContactName());
+        OrderDetailVO.setMobile(user.getMobile());
+        OrderDetailVO.setAddress(user.getAddress());
+        OrderDetailVO.setCostRate(UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue());
 
-        List<OrderItem> orderItems = orderItemMapper.selectByOrderId(Order.getOrderId());
+        List<OrderItem> orderItems = orderItemMapper.selectByOrderId(order.getOrderId());
         //获取订单项数据
         if (!CollectionUtils.isEmpty(orderItems)) {
-            OrderDetailVO OrderDetailVO = new OrderDetailVO();
-            //订单信息
-            OrderDetailVO.setOrderNo(Order.getOrderNo());
-            OrderDetailVO.setOrderDate(Order.getOrderDate());
-            OrderDetailVO.setExpressFee(Order.getExpressFee());
-            OrderDetailVO.setRemark(Order.getRemark());
-            //客户信息
-            OrderDetailVO.setUserName(User.getUserName());
-            OrderDetailVO.setContactName(User.getContactName());
-            OrderDetailVO.setMobile(User.getMobile());
-            OrderDetailVO.setAddress(User.getAddress());
             //商品信息
             List<OrderItemVO> OrderItemVOS = BeanUtil.copyList(orderItems, OrderItemVO.class);
+            //合计
+            Integer goodsCount = 0 ;
+            BigDecimal originalPrice = BigDecimal.ZERO ;
+            BigDecimal sellingPrice = BigDecimal.ZERO ;
+            for (OrderItemVO orderItemVO:OrderItemVOS){
+                goodsCount = goodsCount +orderItemVO.getGoodsCount();
+                originalPrice = originalPrice.add(orderItemVO.getOriginalPrice().multiply(BigDecimal.valueOf(orderItemVO.getGoodsCount())));
+                sellingPrice = sellingPrice.add(orderItemVO.getSellingPrice().multiply(BigDecimal.valueOf(orderItemVO.getGoodsCount())));
+            }
+            OrderItemVO orderItemVO = new OrderItemVO();
+            orderItemVO.setGoodsName("合计");
+            orderItemVO.setGoodsCount(goodsCount);
+            orderItemVO.setOriginalPrice(originalPrice);
+            orderItemVO.setSellingPrice(sellingPrice);
+            orderItemVO.setGoodsUnit("");
+            OrderItemVOS.add(orderItemVO);
             OrderDetailVO.setOrderItemVOS(OrderItemVOS);
-            return OrderDetailVO;
-        } else {
-            Exception.fail(ServiceResultEnum.ORDER_ITEM_NULL_ERROR.getResult());
-            return null;
         }
+
+        if(adminUserId != null){
+            AdminUser adminUser = adminUserMapper.selectById(adminUserId);
+            OrderDetailVO.setPrintName(adminUser.getNickName());
+        }
+        OrderDetailVO.setPrintTime(DateUtils.getCurrentDateTime());
+        return OrderDetailVO;
     }
 
 
@@ -84,67 +105,43 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
 
     @Override
     public String saveOrder(Long adminUserId, OrderDetailParam saveOrderParam) {
-
-        //总价
-        BigDecimal priceTotal = BigDecimal.ZERO;
-        for (OrderItemVO OrderItemVO : saveOrderParam.getOrderItemVOS()) {
-            priceTotal = priceTotal.add( OrderItemVO.getSellingPrice().multiply(BigDecimal.valueOf(OrderItemVO.getGoodsCount())) );
-        }
-
-        User User = userMapper.selectById(saveOrderParam.getUserId());
-        if (User == null) {
+        User user = userMapper.selectById(saveOrderParam.getUserId());
+        if (user == null) {
             Exception.fail(ServiceResultEnum.DATA_NOT_EXIST.getResult());
         }
-
         //1.创建订单
         MallOrder Order = new MallOrder();
         //用户等级 + 付款方式 + yyymmdd+数量
-        String userLevel = UserLevelEnum.getUserLevelEnumByStatus(User.getUserLevel()).getName();
-        Integer count = countTodayOrder(saveOrderParam.getOrderDate());
+        String userLevel = UserLevelEnum.getUserLevelEnumByStatus(user.getUserLevel()).getName();
+        Integer count = countTodayOrder(saveOrderParam.getOrderDate())+1;
         String number = String.format("%04d", count);
         String orderNo = userLevel + saveOrderParam.getPayType() + DateUtils.format(saveOrderParam.getOrderDate() ,"yyyyMMdd") + number;
         Order.setOrderNo(orderNo);
         Order.setUserId(saveOrderParam.getUserId());
         Order.setOrderStatus(saveOrderParam.getOrderStatus());
         Order.setExpressStatus(saveOrderParam.getExpressStatus());
+        Order.setExpressFee(saveOrderParam.getExpressFee());
         Order.setRemark(saveOrderParam.getRemark());
         Order.setOrderDate(saveOrderParam.getOrderDate());
+        Order.setPayType(saveOrderParam.getPayType());
         Order.setIsDeleted(0);
         Order.setOpUserId(adminUserId);
-        Order.setTotalPrice(priceTotal);
+        Order.setTotalPrice(BigDecimal.ZERO);
         Order.setCreateTime(new Date());
         Order.setUpdateTime(new Date());
         mallOrderMapper.insert(Order);
 
-        //2。创建购物清单
-        List<OrderItem> OrderItems = new ArrayList<>();
-        for (OrderItemVO orderItemVO : saveOrderParam.getOrderItemVOS()) {
-            OrderItem OrderItem = new OrderItem();
-            BeanUtil.copyProperties(orderItemVO, OrderItem);
-            OrderItem.setOrderId(Order.getOrderId());
-            OrderItem.setCreateTime(new Date());
-            OrderItems.add(OrderItem);
-        }
-        //保存至数据库
-        if (orderItemMapper.insertBatch(OrderItems) > 0 ) {
-            //所有操作成功后，将订单号返回，以供Controller方法跳转到订单详情
-            return ServiceResultEnum.SUCCESS.getResult();
-        }
-
-        return ServiceResultEnum.OPERATE_ERROR.getResult();
+        return ServiceResultEnum.SUCCESS.getResult();
     }
 
     private Integer countTodayOrder(Date orderDate){
-        Date startTime = DateUtils.getDayBeginTime(orderDate);
-        Date endTime = DateUtils.getDayEndTime(orderDate);
         LambdaQueryWrapper<MallOrder> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.ge(MallOrder::getCreateTime,startTime);
-        queryWrapper.lt(MallOrder::getCreateTime,endTime);
+        queryWrapper.eq(MallOrder::getOrderDate,orderDate);
         return mallOrderMapper.selectCount(queryWrapper);
     }
     @Override
     public String updateOrderInfo(Long adminUserId, OrderDetailParam saveOrderParam) {
-        MallOrder Order = mallOrderMapper.selectByPrimaryKey(saveOrderParam.getOrderId());
+        MallOrder Order = mallOrderMapper.selectById(saveOrderParam.getOrderId());
         if (Order == null) {
             return ServiceResultEnum.DATA_NOT_EXIST.getResult();
         }
@@ -164,7 +161,7 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         Order.setOpUserId(adminUserId);
         Order.setTotalPrice(priceTotal);
         Order.setUpdateTime(new Date());
-        mallOrderMapper.insert(Order);
+        mallOrderMapper.updateById(Order);
 
         //删除之前的购物清单
         LambdaQueryWrapper<OrderItem> queryWrapper = new LambdaQueryWrapper();
@@ -190,6 +187,23 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
 
 
     @Override
+    public String editOrderInfo(Long adminUserId, OrderDetailParam saveOrderParam) {
+        MallOrder Order = mallOrderMapper.selectById(saveOrderParam.getOrderId());
+        if (Order == null) {
+            return ServiceResultEnum.DATA_NOT_EXIST.getResult();
+        }
+        Order.setUserId(saveOrderParam.getUserId());
+        Order.setExpressFee(saveOrderParam.getExpressFee());
+        Order.setRemark(saveOrderParam.getRemark());
+        Order.setOrderDate(saveOrderParam.getOrderDate());
+        Order.setOpUserId(adminUserId);
+        Order.setUpdateTime(new Date());
+        mallOrderMapper.updateById(Order);
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
+
+
+    @Override
     public PageResult getOrdersPage(PageQueryUtil pageUtil) {
         List<MallOrder> Orders = mallOrderMapper.findOrderList(pageUtil);
         for (MallOrder order : Orders){
@@ -207,46 +221,21 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
 
 
     @Override
-    @Transactional
-    public String closeOrder(Long[] ids) {
+    public String closeOrder(Long orderId) {
         //查询所有的订单 判断状态 修改状态和更新时间
-        List<MallOrder> orders = mallOrderMapper.selectByPrimaryKeys(Arrays.asList(ids));
-        String errorOrderNos = "";
-        if (!CollectionUtils.isEmpty(orders)) {
-            for (MallOrder Order : orders) {
-                // isDeleted=1 一定为已关闭订单
-                if (Order.getIsDeleted() == 1) {
-                    errorOrderNos += Order.getOrderNo() + " ";
-                    continue;
-                }
-                //已关闭或者已完成无法关闭订单
-                if (Order.getOrderStatus() == 4 || Order.getOrderStatus() < 0) {
-                    errorOrderNos += Order.getOrderNo() + " ";
-                }
-            }
-            if (StringUtils.isEmpty(errorOrderNos)) {
-                //订单状态正常 可以执行关闭操作 修改订单状态和更新时间
-                if (mallOrderMapper.closeOrder(Arrays.asList(ids), OrderStatusEnum.ORDER_CLOSED.getOrderStatus()) > 0) {
-                    return ServiceResultEnum.SUCCESS.getResult();
-                } else {
-                    return ServiceResultEnum.DB_ERROR.getResult();
-                }
-            } else {
-                //订单此时不可执行关闭操作
-                if (errorOrderNos.length() > 0 && errorOrderNos.length() < 100) {
-                    return errorOrderNos + "订单不能执行关闭操作";
-                } else {
-                    return "你选择的订单不能执行关闭操作";
-                }
-            }
+        MallOrder mallOrder = mallOrderMapper.selectById(orderId);
+        if (mallOrder == null) {
+            return "订单不存在";
         }
+        mallOrder.setOrderStatus(3);
+        mallOrderMapper.updateById(mallOrder);
         //未查询到数据 返回错误提示
-        return ServiceResultEnum.DATA_NOT_EXIST.getResult();
+        return ServiceResultEnum.SUCCESS.getResult();
     }
 
     @Override
     public List<OrderItemVO> getOrderItems(Long orderId) {
-        MallOrder Order = mallOrderMapper.selectByPrimaryKey(orderId);
+        MallOrder Order = mallOrderMapper.selectById(orderId);
         if (Order != null) {
             List<OrderItem> orderItems = orderItemMapper.selectByOrderId(Order.getOrderId());
             //获取订单项数据
@@ -257,4 +246,122 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         }
         return null;
     }
+
+    @Override
+    @Transactional
+    public String deleteItem( Long itemId){
+        OrderItem orderItem = orderItemMapper.selectById(itemId);
+        if(orderItem == null){
+            return "详情不存在";
+        }
+        orderItemMapper.deleteById(itemId);
+
+        MallOrder mallOrder = mallOrderMapper.selectById(orderItem.getOrderId());
+        if (mallOrder == null) {
+            return "订单不存在";
+        }
+        // 总价
+        setTotalPrice(mallOrder);
+        //未查询到数据 返回错误提示
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
+
+    public void setTotalPrice(MallOrder mallOrder ){
+        // 总价
+        List<OrderItem> list = orderItemMapper.selectByOrderId(mallOrder.getOrderId());
+        BigDecimal priceTotal = BigDecimal.ZERO;
+        for (OrderItem OrderItemVO : list) {
+            priceTotal = priceTotal.add( OrderItemVO.getSellingPrice().multiply(BigDecimal.valueOf(OrderItemVO.getGoodsCount())) );
+        }
+        mallOrder.setTotalPrice(priceTotal);
+        mallOrderMapper.updateById(mallOrder);
+    }
+
+    @Override
+    public String updateItem(Long adminUserId, OrderItemParam orderItemParam){
+        OrderItem orderItem = orderItemMapper.selectById(orderItemParam.getOrderItemId());
+        if (orderItem == null) {
+            return ServiceResultEnum.DATA_NOT_EXIST.getResult();
+        }
+        GoodsInfo goodsInfo = goodsInfoMapper.selectById( orderItemParam.getGoodsId());
+        if (goodsInfo == null) {
+            return "产品不存在";
+        }
+       MallOrder mallOrder =  mallOrderMapper.selectById(orderItemParam.getOrderId());
+        if (mallOrder == null) {
+            return "订单不存在";
+        }
+        User user = userMapper.selectById(mallOrder.getUserId());
+        if (user == null) {
+            return "用户不存在";
+        }
+        orderItem.setGoodsId(orderItemParam.getGoodsId());
+        orderItem.setGoodsName(goodsInfo.getGoodsName());
+        orderItem.setGoodsCount(orderItemParam.getGoodsCount());
+        orderItem.setGoodsIntro(orderItemParam.getGoodsIntro());
+        orderItem.setOriginalPrice(goodsInfo.getOriginalPrice());
+        double cost = UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue();
+        orderItem.setSellingPrice(goodsInfo.getOriginalPrice().multiply(BigDecimal.valueOf(cost)));
+        orderItemMapper.updateById(orderItem);
+        // 总价
+        setTotalPrice(mallOrder);
+
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
+
+    @Override
+    public String addItem(Long adminUserId, OrderItemParam orderItemParam){
+
+        GoodsInfo goodsInfo = goodsInfoMapper.selectById( orderItemParam.getGoodsId());
+        if (goodsInfo == null) {
+            return "产品不存在";
+        }
+        MallOrder mallOrder =  mallOrderMapper.selectById(orderItemParam.getOrderId());
+        if (mallOrder == null) {
+            return "订单不存在";
+        }
+        User user = userMapper.selectById(mallOrder.getUserId());
+        if (user == null) {
+            return "用户不存在";
+        }
+        OrderItem orderItem = new OrderItem();
+        orderItem.setOrderId(orderItemParam.getOrderId());
+        orderItem.setGoodsId(orderItemParam.getGoodsId());
+        orderItem.setGoodsName(goodsInfo.getGoodsName());
+        orderItem.setGoodsCount(orderItemParam.getGoodsCount());
+        orderItem.setGoodsIntro(orderItemParam.getGoodsIntro());
+        orderItem.setOriginalPrice(goodsInfo.getOriginalPrice());
+        double cost = UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue();
+        orderItem.setSellingPrice(goodsInfo.getOriginalPrice().multiply(BigDecimal.valueOf(cost)));
+        orderItem.setCreateTime(new Date());
+        orderItemMapper.insert(orderItem);
+        // 总价
+        setTotalPrice(mallOrder);
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
+
+    @Override
+    public String changeOrderStatus(Long orderId,Integer orderStatus){
+        MallOrder mallOrder = mallOrderMapper.selectById(orderId);
+        if (mallOrder == null) {
+            return "订单不存在";
+        }
+        mallOrder.setOrderStatus(orderStatus);
+        mallOrderMapper.updateById(mallOrder);
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
+
+    @Override
+    public String changeExpressStatus(Long orderId,Integer expressStatus){
+        MallOrder mallOrder = mallOrderMapper.selectById(orderId);
+        if (mallOrder == null) {
+            return "订单不存在";
+        }
+        mallOrder.setExpressStatus(expressStatus);
+        mallOrderMapper.updateById(mallOrder);
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
+
+
+
 }

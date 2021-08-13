@@ -13,7 +13,7 @@ public interface AdminUserTokenMapper extends BaseMapper<AdminUserToken> {
 
     int insertSelective(AdminUserToken record);
 
-    AdminUserToken selectByPrimaryKey(Long userId);
+    AdminUserToken selectById(Long userId);
 
     AdminUserToken selectByToken(String token);
 

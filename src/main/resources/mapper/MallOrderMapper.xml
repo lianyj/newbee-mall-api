@@ -21,12 +21,7 @@
     order_id, order_no, user_id, total_price, order_status,order_date,op_user_id,pay_type,
      is_deleted, create_time, update_time,express_fee,express_status,remark
   </sql>
-    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from mall_order
-        where order_id = #{orderId}
-    </select>
+
     <select id="selectByOrderNo" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -34,15 +29,7 @@
         where order_no = #{orderNo}
           and is_deleted=0 limit 1
     </select>
-    <select id="selectByPrimaryKeys" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from mall_order
-        where order_id in
-        <foreach collection="orderIds" item="item" index="index"
-                 open="(" separator="," close=")">#{item}
-        </foreach>
-    </select>
+
     <select id="findOrderList" parameterType="Map" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -60,10 +47,10 @@
             <if test="isDeleted!=null and isDeleted!=''">
                 and is_deleted = #{isDeleted}
             </if>
-            <if test="startTime != null and startTime.trim() != ''">
+            <if test="startTime != null and startTime != ''">
                 and order_date &gt; #{startTime}
             </if>
-            <if test="endTime != null and endTime.trim() != ''">
+            <if test="endTime != null and endTime != ''">
                 and order_date &lt; #{endTime}
             </if>
             <if test="expressStatus != null">

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -140,6 +141,18 @@ public class AdminGoodsInfoAPI {
         } else {
             return ResultGenerator.genFailResult("修改失败");
         }
+    }
+
+
+    /**
+     * 查询所有产品
+     */
+    @GetMapping("/good/allList")
+    @ApiOperation(value = "查询所有产品", notes = "")
+    public Result<List<GoodsInfo>> getGoodAllList() {
+        List<GoodsInfo> goodAllList = goodsInfoService.getGoodAllList();
+
+        return ResultGenerator.genSuccessResult(goodAllList);
     }
 
 }

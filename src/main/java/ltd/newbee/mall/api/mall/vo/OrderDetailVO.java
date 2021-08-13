@@ -15,6 +15,8 @@ import java.util.List;
 @Data
 public class OrderDetailVO implements Serializable {
 
+    private Long orderId;
+
     @ApiModelProperty("订单编号")
     private String orderNo;
 
@@ -27,6 +29,7 @@ public class OrderDetailVO implements Serializable {
 
     @ApiModelProperty("备注")
     private String remark;
+
 
 
 
@@ -45,8 +48,16 @@ public class OrderDetailVO implements Serializable {
     @ApiModelProperty("联系地址")
     private String address;
 
-
+    @ApiModelProperty("折扣率")
+    private double costRate;
 
     @ApiModelProperty("订单项列表")
-    private List<OrderItemVO> OrderItemVOS;
+    private List<OrderItemVO> orderItemVOS;
+
+    @ApiModelProperty("制单人")
+    private String printName;
+
+    @ApiModelProperty("打印时间")
+    private String printTime;
+
 }

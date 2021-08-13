@@ -19,12 +19,7 @@
     order_item_id, order_id, goods_id, goods_name, selling_price, goods_count, 
     create_time,goods_intro,original_price
   </sql>
-    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from order_item
-        where order_item_id = #{orderItemId}
-    </select>
+
     <select id="selectByOrderId" parameterType="java.lang.Long" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -41,10 +36,7 @@
             #{id}
         </foreach>
     </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    delete from order_item
-    where order_item_id = #{orderItemId}
-  </delete>
+
     <insert id="insertBatch" parameterType="ltd.newbee.mall.entity.OrderItem">
         insert into order_item
             (order_id,
@@ -65,122 +57,6 @@
             #{orderItem.originalPrice})
         </foreach>
     </insert>
-    <insert id="insert" parameterType="ltd.newbee.mall.entity.OrderItem">
-    insert into order_item (
-       order_item_id,
-       order_id,
-       goods_id,
-      goods_name, 
-       selling_price,
-      goods_count,
-        create_time,
-       goods_intro,
-       original_price)
-    values (#{orderItemId}, #{orderId}, #{goodsId},
-      #{goodsName}, #{sellingPrice},
-      #{goodsCount}, #{createTime},#{goodsIntro},#{originalPrice})
-  </insert>
-    <insert id="insertSelective" parameterType="ltd.newbee.mall.entity.OrderItem">
-        insert into order_item
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="orderItemId != null">
-                order_item_id,
-            </if>
-            <if test="orderId != null">
-                order_id,
-            </if>
-            <if test="goodsId != null">
-                goods_id,
-            </if>
-            <if test="goodsName != null">
-                goods_name,
-            </if>
-            <if test="sellingPrice != null">
-                selling_price,
-            </if>
-            <if test="goodsCount != null">
-                goods_count,
-            </if>
-            <if test="createTime != null">
-                create_time,
-            </if>
-            <if test="goodsIntro != null">
-                goods_intro,
-            </if>
-            <if test="originalPrice != null">
-                original_price,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="orderItemId != null">
-                #{orderItemId},
-            </if>
-            <if test="orderId != null">
-                #{orderId},
-            </if>
-            <if test="goodsId != null">
-                #{goodsId},
-            </if>
-            <if test="goodsName != null">
-                #{goodsName},
-            </if>
-            <if test="sellingPrice != null">
-                #{sellingPrice},
-            </if>
-            <if test="goodsCount != null">
-                #{goodsCount},
-            </if>
-            <if test="createTime != null">
-                #{createTime},
-            </if>
-            <if test="goodsIntro != null">
-                #{goodsIntro},
-            </if>
-            <if test="originalPrice != null">
-                #{originalPrice},
-            </if>
-        </trim>
-    </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="ltd.newbee.mall.entity.OrderItem">
-        update order_item
-        <set>
-            <if test="orderId != null">
-                order_id = #{orderId},
-            </if>
-            <if test="goodsId != null">
-                goods_id = #{goodsId},
-            </if>
-            <if test="goodsName != null">
-                goods_name = #{goodsName},
-            </if>
-            <if test="sellingPrice != null">
-                selling_price = #{sellingPrice},
-            </if>
-            <if test="goodsCount != null">
-                goods_count = #{goodsCount},
-            </if>
-            <if test="createTime != null">
-                create_time = #{createTime},
-            </if>
-            <if test="goodsIntro != null">
-                goods_intro = #{goodsIntro},
-            </if>
-            <if test="originalPrice != null">
-                original_price =  #{originalPrice},
-            </if>
-        </set>
-        where order_item_id = #{orderItemId}
-    </update>
-    <update id="updateByPrimaryKey" parameterType="ltd.newbee.mall.entity.OrderItem">
-    update order_item
-    set order_id = #{orderId},
-      goods_id = #{goodsId},
-      goods_name = #{goodsName},
-      selling_price = #{sellingPrice},
-      goods_count = #{goodsCount},
-      create_time = #{createTime},
-        goods_intro = #{goodsIntro},
-        original_price =  #{originalPrice},
-    where order_item_id = #{orderItemId}
-  </update>
+
+
 </mapper>

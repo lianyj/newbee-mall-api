@@ -25,13 +25,7 @@ public interface GoodsInfoService extends IService<GoodsInfo> {
      */
     String saveGoods(GoodsInfo goods);
 
-    /**
-     * 批量新增商品数据
-     *
-     * @param GoodsList
-     * @return
-     */
-    void batchSaveGoods(List<GoodsInfo> GoodsList);
+
 
     /**
      * 修改商品信息
@@ -56,5 +50,7 @@ public interface GoodsInfoService extends IService<GoodsInfo> {
      * @return
      */
     GoodsInfo getGoodsById(Long id);
+
+    List<GoodsInfo> getGoodAllList();
 
 }

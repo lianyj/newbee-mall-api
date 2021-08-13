@@ -1,6 +1,7 @@
 
 package ltd.newbee.mall.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import ltd.newbee.mall.api.mall.param.UserRegisterParam;
 import ltd.newbee.mall.common.Exception;
@@ -34,7 +35,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         registerUser.setMobile(UserRegisterParam.getMobile());
         registerUser.setAddress(UserRegisterParam.getAddress());
         registerUser.setRemark(UserRegisterParam.getRemark());
-        if (userMapper.insertSelective(registerUser) > 0) {
+        if (userMapper.insert(registerUser) > 0) {
             return ServiceResultEnum.SUCCESS.getResult();
         }
         return ServiceResultEnum.DB_ERROR.getResult();
@@ -43,7 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Boolean updateUserInfo(UserRegisterParam User) {
-        User user = userMapper.selectByPrimaryKey(User.getUserId());
+        User user = userMapper.selectById(User.getUserId());
         if (user == null) {
             Exception.fail(ServiceResultEnum.DATA_NOT_EXIST.getResult());
         }
@@ -54,7 +55,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setMobile(User.getMobile());
         user.setAddress(User.getAddress());
         user.setRemark(User.getRemark());
-        if (userMapper.updateByPrimaryKeySelective(user) > 0) {
+        if (userMapper.updateById(user) > 0) {
             return true;
         }
         return false;
@@ -76,11 +77,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setUserId(userId);
         user.setIsDeleted(status.byteValue());
-        if (userMapper.updateByPrimaryKeySelective(user) > 0) {
+        if (userMapper.updateById(user) > 0) {
             return true;
         }
         return false;
     }
 
+    @Override
+    public  List<User> getUserAllList(){
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getIsDeleted,0);
+        List<User> users =  userMapper.selectList(queryWrapper);
+        for (User user :users){
+            user.setUserLevelStr(UserLevelEnum.getUserLevelEnumByStatus(user.getUserLevel()).getName());
+        }
+       return users;
+    }
 
 }

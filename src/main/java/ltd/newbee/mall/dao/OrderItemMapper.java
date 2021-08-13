@@ -8,14 +8,6 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface OrderItemMapper extends BaseMapper<OrderItem> {
-    int deleteByPrimaryKey(Long orderItemId);
-
-    int insert(OrderItem record);
-
-    int insertSelective(OrderItem record);
-
-    OrderItem selectByPrimaryKey(Long orderItemId);
-
     /**
      * 根据订单id获取订单项列表
      *
@@ -40,7 +32,5 @@ public interface OrderItemMapper extends BaseMapper<OrderItem> {
      */
     int insertBatch(@Param("orderItems") List<OrderItem> orderItems);
 
-    int updateByPrimaryKeySelective(OrderItem record);
 
-    int updateByPrimaryKey(OrderItem record);
 }

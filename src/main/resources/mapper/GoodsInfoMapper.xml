@@ -27,23 +27,6 @@
     update_time,remark,sphere_min,sphere_max,cylinder_min,cylinder_max
   </sql>
 
-
-    <insert id="batchInsert">
-        INSERT INTO goods_info(goods_name, goods_intro,original_price,stock_num,
-                      remark,sphere_min,sphere_max,cylinder_min,cylinder_max)
-        VALUES
-        <foreach collection="GoodsList" item="goods" separator=",">
-            (#{goods.goodsName},#{goods.goodsIntro},#{goods.originalPrice},#{goods.stockNum},
-            #{goods.remark},#{goods.sphereMin},#{goods.sphereMax},#{goods.cylinderMin},#{goods.cylinderMax},
-             )
-        </foreach>
-    </insert>
-    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from goods_info
-        where goods_id = #{goodsId}
-    </select>
     <select id="selectByCategoryIdAndName" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -135,20 +118,7 @@
         </where>
     </select>
 
-    <select id="selectByPrimaryKeys" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from goods_info
-        where goods_id in
-        <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-        order by field(goods_id,
-        <foreach item="id" collection="list" separator=",">
-            #{id}
-        </foreach>
-        );
-    </select>
+
     <select id="getTotalGoods" parameterType="Map" resultType="int">
         select count(*) from goods_info
         <where>
@@ -169,10 +139,7 @@
             </if>
         </where>
     </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    delete from goods_info
-    where goods_id = #{goodsId}
-  </delete>
+
     <insert id="insert" parameterType="ltd.newbee.mall.entity.GoodsInfo">
     insert into goods_info (goods_id, goods_name, goods_intro,
        original_price,
@@ -189,109 +156,7 @@
             #{remark},#{sphereMin},#{sphereMax},#{cylinderMin},#{cylinderMax}
       )
   </insert>
-    <insert id="insertSelective" parameterType="ltd.newbee.mall.entity.GoodsInfo">
-        insert into goods_info
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="goodsId != null">
-                goods_id,
-            </if>
-            <if test="goodsName != null">
-                goods_name,
-            </if>
-            <if test="goodsIntro != null">
-                goods_intro,
-            </if>
-            <if test="originalPrice != null">
-                original_price,
-            </if>
-            <if test="stockNum != null">
-                stock_num,
-            </if>
-            <if test="tag != null">
-                tag,
-            </if>
-            <if test="goodsSellStatus != null">
-                goods_sell_status,
-            </if>
-            <if test="createUser != null">
-                create_user,
-            </if>
-            <if test="createTime != null">
-                create_time,
-            </if>
-            <if test="updateUser != null">
-                update_user,
-            </if>
-            <if test="updateTime != null">
-                update_time,
-            </if>
-            <if test="remark != null">
-                remark,
-            </if>
-            <if test="sphereMin != null">
-                sphere_min,
-            </if>
-            <if test="sphereMax != null">
-                sphere_max,
-            </if>
-            <if test="cylinderMin != null">
-                cylinder_min,
-            </if>
-            <if test="cylinderMax != null">
-                cylinder_max,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="goodsId != null">
-                #{goodsId},
-            </if>
-            <if test="goodsName != null">
-                #{goodsName},
-            </if>
-            <if test="goodsIntro != null">
-                #{goodsIntro},
-            </if>
-            <if test="originalPrice != null">
-                #{originalPrice},
-            </if>
-            <if test="stockNum != null">
-                #{stockNum},
-            </if>
-            <if test="tag != null">
-                #{tag},
-            </if>
-            <if test="goodsSellStatus != null">
-                #{goodsSellStatus},
-            </if>
-            <if test="createUser != null">
-                #{createUser},
-            </if>
-            <if test="createTime != null">
-                #{createTime},
-            </if>
-            <if test="updateUser != null">
-                #{updateUser},
-            </if>
-            <if test="updateTime != null">
-                #{updateTime},
-            </if>
-            <if test="remark != null">
-                #{remark},
-            </if>
-            <if test="sphereMin != null">
-                #{sphereMin},
-            </if>
-            <if test="sphereMax != null">
-                #{sphereMax},
-            </if>
-            <if test="cylinderMin != null">
-                #{cylinderMin},
-            </if>
-            <if test="cylinderMax != null">
-                #{cylinderMax},
-            </if>
-        </trim>
-    </insert>
+
     <update id="updateByPrimaryKeySelective" parameterType="ltd.newbee.mall.entity.GoodsInfo">
         update goods_info
         <set>
@@ -343,42 +208,5 @@
         </set>
         where goods_id = #{goodsId}
     </update>
-    <update id="updateByPrimaryKeyWithBLOBs" parameterType="ltd.newbee.mall.entity.GoodsInfo">
-    update goods_info
-    set goods_name = #{goodsName},
-      goods_intro = #{goodsIntro},
-      original_price = #{originalPrice},
-      stock_num = #{stockNum},
-      tag = #{tag},
-      goods_sell_status = #{goodsSellStatus},
-      create_user = #{createUser},
-      create_time = #{createTime},
-      update_user = #{updateUser},
-      update_time = #{updateTime},
-        remark = #{remark},
-        sphere_min = #{sphereMin},
-        sphere_max = #{sphereMax},
-        cylinder_min = #{cylinderMin},
-        cylinder_max = #{cylinderMax}
-    where goods_id = #{goodsId}
-  </update>
-    <update id="updateByPrimaryKey" parameterType="ltd.newbee.mall.entity.GoodsInfo">
-    update goods_info
-    set goods_name = #{goodsName},
-      goods_intro = #{goodsIntro},
-      original_price = #{originalPrice},
-      stock_num = #{stockNum},
-      tag = #{tag},
-      goods_sell_status = #{goodsSellStatus},
-      create_user = #{createUser},
-      create_time = #{createTime},
-      update_user = #{updateUser},
-      update_time = #{updateTime},
-        remark = #{remark},
-        sphere_min = #{sphereMin},
-        sphere_max = #{sphereMax},
-        cylinder_min = #{cylinderMin},
-        cylinder_max = #{cylinderMax}
-    where goods_id = #{goodsId}
-  </update>
+
 </mapper>

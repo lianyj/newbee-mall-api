@@ -7,6 +7,7 @@ import ltd.newbee.mall.entity.User;
 import ltd.newbee.mall.util.PageQueryUtil;
 import ltd.newbee.mall.util.PageResult;
 
+import java.util.List;
 import java.util.Map;
 
 public interface UserService extends IService<User> {
@@ -45,4 +46,6 @@ public interface UserService extends IService<User> {
      ** @return
      */
     Boolean updateUserStatus(Long userId,Integer status);
+
+   List<User> getUserAllList();
 }

@@ -30,7 +30,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
         if (loginAdminUser != null) {
             //登录后即执行修改token的操作
             String token = getNewToken(System.currentTimeMillis() + "", loginAdminUser.getAdminUserId());
-            AdminUserToken adminUserToken = adminUserTokenMapper.selectByPrimaryKey(loginAdminUser.getAdminUserId());
+            AdminUserToken adminUserToken = adminUserTokenMapper.selectById(loginAdminUser.getAdminUserId());
             //当前时间
             Date now = new Date();
             //过期时间
@@ -77,19 +77,19 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
     @Override
     public AdminUser getUserDetailById(Long loginUserId) {
-        return adminUserMapper.selectByPrimaryKey(loginUserId);
+        return adminUserMapper.selectById(loginUserId);
     }
 
     @Override
     public Boolean updatePassword(Long loginUserId, String originalPassword, String newPassword) {
-        AdminUser adminUser = adminUserMapper.selectByPrimaryKey(loginUserId);
+        AdminUser adminUser = adminUserMapper.selectById(loginUserId);
         //当前用户非空才可以进行更改
         if (adminUser != null) {
             //比较原密码是否正确
             if (originalPassword.equals(adminUser.getLoginPassword())) {
                 //设置新密码并修改
                 adminUser.setLoginPassword(newPassword);
-                if (adminUserMapper.updateByPrimaryKeySelective(adminUser) > 0 && adminUserTokenMapper.deleteByPrimaryKey(loginUserId) > 0) {
+                if (adminUserMapper.updateById(adminUser) > 0 && adminUserTokenMapper.deleteByPrimaryKey(loginUserId) > 0) {
                     //修改成功且清空当前token则返回true
                     return true;
                 }
@@ -100,13 +100,13 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
     @Override
     public Boolean updateName(Long loginUserId, String loginUserName, String nickName) {
-        AdminUser adminUser = adminUserMapper.selectByPrimaryKey(loginUserId);
+        AdminUser adminUser = adminUserMapper.selectById(loginUserId);
         //当前用户非空才可以进行更改
         if (adminUser != null) {
             //设置新名称并修改
             adminUser.setLoginUserName(loginUserName);
             adminUser.setNickName(nickName);
-            if (adminUserMapper.updateByPrimaryKeySelective(adminUser) > 0) {
+            if (adminUserMapper.updateById(adminUser) > 0) {
                 //修改成功则返回true
                 return true;
             }
