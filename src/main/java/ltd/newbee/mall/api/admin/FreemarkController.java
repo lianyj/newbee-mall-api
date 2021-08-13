@@ -22,11 +22,16 @@ public class FreemarkController {
     @Autowired
     private OrderService orderService;
 
+    @RequestMapping("/")
+    public String index(Model model) {
+        return "index";
+    }
+
     @RequestMapping("/order/print/{orderId}/{name}")
-    public String index(Model model,@PathVariable("orderId") Long orderId ,@PathVariable("name") String name) {
+    public String print(Model model,@PathVariable("orderId") Long orderId ,@PathVariable("name") String name) {
         OrderDetailVO orderDetailVO =  orderService.getOrderDetailByOrderId(orderId,null);
         orderDetailVO.setPrintName(name);
         model.addAttribute(orderDetailVO);
-        return "index";
+        return "print";
     }
 }
