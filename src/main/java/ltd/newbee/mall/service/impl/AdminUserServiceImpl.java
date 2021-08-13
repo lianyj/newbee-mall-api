@@ -42,7 +42,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
                 adminUserToken.setUpdateTime(now);
                 adminUserToken.setExpireTime(expireTime);
                 //新增一条token数据
-                if (adminUserTokenMapper.insertSelective(adminUserToken) > 0) {
+                if (adminUserTokenMapper.insert(adminUserToken) > 0) {
                     //新增成功后返回
                     return token;
                 }
@@ -51,7 +51,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
                 adminUserToken.setUpdateTime(now);
                 adminUserToken.setExpireTime(expireTime);
                 //更新
-                if (adminUserTokenMapper.updateByPrimaryKeySelective(adminUserToken) > 0) {
+                if (adminUserTokenMapper.updateById(adminUserToken) > 0) {
                     //修改成功后返回
                     return token;
                 }
@@ -89,7 +89,7 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
             if (originalPassword.equals(adminUser.getLoginPassword())) {
                 //设置新密码并修改
                 adminUser.setLoginPassword(newPassword);
-                if (adminUserMapper.updateById(adminUser) > 0 && adminUserTokenMapper.deleteByPrimaryKey(loginUserId) > 0) {
+                if (adminUserMapper.updateById(adminUser) > 0 && adminUserTokenMapper.deleteById(loginUserId) > 0) {
                     //修改成功且清空当前token则返回true
                     return true;
                 }
@@ -116,6 +116,6 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
 
     @Override
     public Boolean logout(Long adminUserId) {
-        return adminUserTokenMapper.deleteByPrimaryKey(adminUserId) > 0;
+        return adminUserTokenMapper.deleteById(adminUserId) > 0;
     }
 }

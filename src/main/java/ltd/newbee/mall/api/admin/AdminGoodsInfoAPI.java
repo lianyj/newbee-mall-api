@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,8 @@ public class AdminGoodsInfoAPI {
         logger.info("adminUser:{}", adminUser.toString());
         GoodsInfo Goods = new GoodsInfo();
         BeanUtil.copyProperties(goodsAddParam, Goods);
+        Goods.setCreateUser(adminUser.getAdminUserId());
+        Goods.setCreateTime(new Date());
         String result = goodsInfoService.saveGoods(Goods);
         if (ServiceResultEnum.SUCCESS.getResult().equals(result)) {
             return ResultGenerator.genSuccessResult();

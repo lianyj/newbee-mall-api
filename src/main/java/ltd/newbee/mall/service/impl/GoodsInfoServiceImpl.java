@@ -12,13 +12,14 @@ import ltd.newbee.mall.util.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class GoodsInfoServiceImpl  extends ServiceImpl<GoodsInfoMapper, GoodsInfo> implements GoodsInfoService {
 
-    @Autowired
+    @Resource
     private GoodsInfoMapper goodsInfoMapper;
 
     @Override
@@ -47,7 +48,7 @@ public class GoodsInfoServiceImpl  extends ServiceImpl<GoodsInfoMapper, GoodsInf
         }
 
         goods.setUpdateTime(new Date());
-        if (goodsInfoMapper.updateByPrimaryKeySelective(goods) > 0) {
+        if (goodsInfoMapper.updateById(goods) > 0) {
             return ServiceResultEnum.SUCCESS.getResult();
         }
         return ServiceResultEnum.DB_ERROR.getResult();

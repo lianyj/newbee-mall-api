@@ -30,7 +30,7 @@ public class GoodsInfo  implements Serializable {
 
     private Byte goodsSellStatus;
 
-    private Integer createUser;
+    private Long createUser;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;

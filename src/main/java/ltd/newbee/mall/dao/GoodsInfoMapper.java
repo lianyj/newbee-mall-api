@@ -15,8 +15,6 @@ public interface GoodsInfoMapper  extends BaseMapper<GoodsInfo> {
 
     GoodsInfo selectByCategoryIdAndName(@Param("GoodsInfoName") String GoodsInfoName, @Param("GoodsInfoCategoryId") Long GoodsInfoCategoryId);
 
-    int updateByPrimaryKeySelective(GoodsInfo record);
-
     List<GoodsInfo> findGoodsList(PageQueryUtil pageUtil);
 
     int getTotalGoods(PageQueryUtil pageUtil);
