@@ -20,21 +20,21 @@ public class GoodsAddParam {
     @ApiModelProperty("商品简介")
     private String goodsIntro;
 
-    @ApiModelProperty("originalPrice")
-    @NotNull(message = "originalPrice不能为空")
+    @ApiModelProperty("标批价格")
+    @NotNull(message = "标批价格不能为空")
     private BigDecimal originalPrice;
 
     @ApiModelProperty("库存")
-    @NotNull(message = "库存不能为空")
     private Integer stockNum;
 
     @ApiModelProperty("商品标签")
-    @NotEmpty(message = "商品标签不能为空")
     private String tag;
 
     private Byte goodsSellStatus;
 
+    @ApiModelProperty("备注")
     private String remark;
+
     private BigDecimal sphereMin;
     private BigDecimal sphereMax;
     private BigDecimal cylinderMin;

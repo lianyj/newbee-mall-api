@@ -12,10 +12,7 @@ import ltd.newbee.mall.common.Exception;
 import ltd.newbee.mall.dao.*;
 import ltd.newbee.mall.entity.*;
 import ltd.newbee.mall.service.OrderService;
-import ltd.newbee.mall.util.BeanUtil;
-import ltd.newbee.mall.util.DateUtils;
-import ltd.newbee.mall.util.PageQueryUtil;
-import ltd.newbee.mall.util.PageResult;
+import ltd.newbee.mall.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +20,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> implements OrderService {
@@ -85,8 +80,8 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
             OrderItemVO orderItemVO = new OrderItemVO();
             orderItemVO.setGoodsName("合计");
             orderItemVO.setGoodsCount(goodsCount);
-            orderItemVO.setOriginalPrice(originalPrice);
-            orderItemVO.setSellingPrice(sellingPrice);
+            orderItemVO.setOriginalPrice( originalPrice.add(BigDecimal.valueOf(order.getExpressFee())));
+            orderItemVO.setSellingPrice(sellingPrice.add(BigDecimal.valueOf(order.getExpressFee())));
             orderItemVO.setGoodsUnit("");
             OrderItemVOS.add(orderItemVO);
             OrderDetailVO.setOrderItemVOS(OrderItemVOS);
@@ -96,7 +91,7 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
             AdminUser adminUser = adminUserMapper.selectById(adminUserId);
             OrderDetailVO.setPrintName(adminUser.getNickName());
         }
-        OrderDetailVO.setPrintTime(DateUtils.getCurrentDateTime());
+        OrderDetailVO.setPrintTime(DateUtils.getCurrentDate());
         return OrderDetailVO;
     }
 
@@ -207,7 +202,7 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
     public PageResult getOrdersPage(PageQueryUtil pageUtil) {
         List<MallOrder> Orders = mallOrderMapper.findOrderList(pageUtil);
         for (MallOrder order : Orders){
-           User user = userMapper.selectById( order.getUserId());
+            User user = userMapper.selectById( order.getUserId());
             order.setUserName(user.getUserName());
             order.setContactName(user.getContactName());
             order.setUserLevelStr( UserLevelEnum.getUserLevelEnumByStatus(user.getUserLevel()).getName());
@@ -219,6 +214,33 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         return pageResult;
     }
 
+    @Override
+    public void exportOrdersList(PageQueryUtil pageUtil, HttpServletResponse response) throws java.lang.Exception {
+        PageResult pageResult =  getOrdersPage(pageUtil);
+        List<MallOrder> orders = pageResult.getList();
+        List<Map<String, Object>> dateList = new LinkedList<Map<String, Object>>();
+        for (MallOrder order :orders){
+
+            List<OrderItem> items = orderItemMapper.selectByOrderId(order.getOrderId());
+            for (OrderItem item :items){
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("orderDate",DateUtils.formatDate(order.getOrderDate()));
+                map.put("orderNo",order.getOrderNo());
+                map.put("goodInfo",item.getGoodsName() + item.getGoodsIntro());
+                map.put("unit","片");
+                map.put("goodCount",item.getGoodsCount());
+                map.put("originalPrice",item.getOriginalPrice());
+                map.put("sellingPrice",item.getSellingPrice());
+                map.put("expressFree",order.getExpressFee());
+                dateList.add(map);
+            }
+        }
+        //导出
+        String[] headerArr = new String[]{"订单日期", "订单编号", "产品名称/型号", "单位", "数量", "标批价", "折后价", "快递费"};
+        String sheetName = "复核页数据导出表.xls";
+        ExcelUtil.writeToExcel(dateList, headerArr, sheetName, response);
+
+    }
 
     @Override
     public String closeOrder(Long orderId) {
@@ -273,6 +295,8 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         for (OrderItem OrderItemVO : list) {
             priceTotal = priceTotal.add( OrderItemVO.getSellingPrice().multiply(BigDecimal.valueOf(OrderItemVO.getGoodsCount())) );
         }
+        //加上快递费
+        priceTotal =  priceTotal.add(BigDecimal.valueOf( mallOrder.getExpressFee()));
         mallOrder.setTotalPrice(priceTotal);
         mallOrderMapper.updateById(mallOrder);
     }

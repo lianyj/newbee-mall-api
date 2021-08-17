@@ -48,10 +48,10 @@
                 and is_deleted = #{isDeleted}
             </if>
             <if test="startTime != null and startTime != ''">
-                and order_date &gt; #{startTime}
+                and order_date &gt;= #{startTime}
             </if>
             <if test="endTime != null and endTime != ''">
-                and order_date &lt; #{endTime}
+                and order_date &lt;= #{endTime}
             </if>
             <if test="expressStatus != null">
                 and express_status = #{expressStatus}
@@ -79,10 +79,10 @@
                 and is_deleted = #{isDeleted}
             </if>
             <if test="startTime != null and startTime.trim() != ''">
-                and order_date &gt; #{startTime}
+                and order_date &gt;= #{startTime}
             </if>
             <if test="endTime != null and endTime.trim() != ''">
-                and order_date &lt; #{endTime}
+                and order_date &lt;= #{endTime}
             </if>
             <if test="expressStatus != null">
                 and express_status = #{expressStatus}

@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,6 +88,47 @@ public class AdminOrderAPI {
             logger.error("出异常：",e);
         }
         return ResultGenerator.genFailResult("请稍后再试");
+    }
+
+    /**
+     * 订单列表导出
+     */
+    @RequestMapping(value = "/orders/export", method = RequestMethod.GET)
+    @ApiOperation(value = "订单列表导出", notes = "")
+    public void export(
+            @RequestParam(required = false) @ApiParam(value = "订单时间") String startTime,
+                       @RequestParam(required = false) @ApiParam(value = "订单时间") String endTime,
+                       @RequestParam(required = false) @ApiParam(value = "客户ID") Integer userId,
+                       @RequestParam(required = false) @ApiParam(value = "快递状态") Integer expressStatus,
+                       @RequestParam(required = false) @ApiParam(value = "订单号") String orderNo,
+                       @RequestParam(required = false) @ApiParam(value = "订单状态") Integer orderStatus,
+                        HttpServletResponse response) {
+        try {
+
+            Map<String,Object> params = new HashMap<String,Object>();
+            if (!StringUtils.isEmpty(orderNo)) {
+                params.put("orderNo", orderNo);
+            }
+            if (orderStatus != null) {
+                params.put("orderStatus", orderStatus);
+            }
+            if (userId != null) {
+                params.put("userId", userId);
+            }
+            if (expressStatus != null) {
+                params.put("expressStatus", expressStatus);
+            }
+            if (startTime != null ) {
+                params.put("startTime", startTime);
+            }
+            if (endTime != null ) {
+                params.put("endTime",endTime);
+            }
+            PageQueryUtil pageUtil = new PageQueryUtil(params);
+            orderService.exportOrdersList(pageUtil,response);
+        }catch (java.lang.Exception e){
+            logger.error("出异常：",e);
+        }
     }
 
     @GetMapping("/orders/{orderId}")

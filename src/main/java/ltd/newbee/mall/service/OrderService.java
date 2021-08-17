@@ -9,7 +9,9 @@ import ltd.newbee.mall.api.mall.vo.OrderItemVO;
 import ltd.newbee.mall.entity.MallOrder;
 import ltd.newbee.mall.util.PageQueryUtil;
 import ltd.newbee.mall.util.PageResult;
+import ltd.newbee.mall.util.Result;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 public interface OrderService extends IService<MallOrder> {
@@ -21,7 +23,12 @@ public interface OrderService extends IService<MallOrder> {
      */
     PageResult getOrdersPage(PageQueryUtil pageUtil);
 
-
+    /**
+     * 导出列表
+     * @param pageUtil
+     * @return
+     */
+    void exportOrdersList(PageQueryUtil pageUtil, HttpServletResponse response) throws Exception;
     /**
      * 获取订单详情
      *
