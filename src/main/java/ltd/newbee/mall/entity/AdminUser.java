@@ -12,7 +12,7 @@ public class AdminUser  implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "admin_user_id", type = IdType.AUTO)
+    @TableId(type = IdType.AUTO)
     private Long adminUserId;
 
     private String loginUserName;
