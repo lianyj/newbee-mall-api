@@ -61,7 +61,7 @@
 <body>
 <#list 0..1 as i>
     <div class="head_title">
-        <b>杭州诚必达光学有限公司</b>
+       <span><b>杭州诚必达光学有限公司</b></span>
     </div>
 
     <div style="margin-top: 50px">
@@ -112,8 +112,8 @@
                     <td> <#if list.goodsName??> ${list.goodsName}</#if> <#if list.goodsIntro??> ${list.goodsIntro}</#if></td>
                     <td> <#if list.goodsUnit??> ${list.goodsUnit}</#if></td>
                     <td> <#if list.goodsCount??> ${list.goodsCount}</#if></td>
-                    <td> <#if list.originalPrice??><#if i==1> ${list.originalPrice}<#else > * </#if></#if></td>
-                    <td> <#if list.sellingPrice??><#if i==1> ${list.sellingPrice}<#else > * </#if></#if></td>
+                    <td> <#if list.originalPrice??> ${list.originalPrice}</#if></td>
+                    <td> <#if list.sellingPrice??> ${list.sellingPrice}</#if></td>
                 </tr>
             </#list>
         </#if>
@@ -132,12 +132,7 @@
 
     <#if i==0>
         <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
+        -
         <br/>
     </#if>
 </#list>
