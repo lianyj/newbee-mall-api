@@ -55,6 +55,7 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         OrderDetailVO.setExpressFee(order.getExpressFee());
         OrderDetailVO.setRemark(order.getRemark());
         OrderDetailVO.setOrderId(order.getOrderId());
+        OrderDetailVO.setPayType(order.getPayType());
         //客户信息
         OrderDetailVO.setUserId(user.getUserId());
         OrderDetailVO.setUserName(user.getUserName());

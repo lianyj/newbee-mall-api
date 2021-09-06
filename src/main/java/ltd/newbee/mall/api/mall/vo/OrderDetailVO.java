@@ -29,7 +29,8 @@ public class OrderDetailVO implements Serializable {
 
     @ApiModelProperty("备注")
     private String remark;
-
+    @ApiModelProperty("支付方式")
+    private String payType;
 
 
 

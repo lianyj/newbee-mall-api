@@ -109,19 +109,19 @@ public class AdminOrderAPI {
             if (!StringUtils.isEmpty(orderNo)) {
                 params.put("orderNo", orderNo);
             }
-            if (orderStatus != null) {
+            if (!StringUtils.isEmpty(orderStatus )) {
                 params.put("orderStatus", orderStatus);
             }
-            if (userId != null) {
+            if (!StringUtils.isEmpty(userId )) {
                 params.put("userId", userId);
             }
-            if (expressStatus != null) {
+            if (!StringUtils.isEmpty(expressStatus )) {
                 params.put("expressStatus", expressStatus);
             }
-            if (startTime != null ) {
+            if (!StringUtils.isEmpty(startTime)){
                 params.put("startTime", startTime);
             }
-            if (endTime != null ) {
+            if (!StringUtils.isEmpty(endTime) ) {
                 params.put("endTime",endTime);
             }
             PageQueryUtil pageUtil = new PageQueryUtil(params);
