@@ -26,4 +26,11 @@ public class OrderItemParam implements Serializable {
     @ApiModelProperty("商品数量")
     private Integer goodsCount;
 
+    @ApiModelProperty("单价")
+    private BigDecimal originalPrice;
+
+    @ApiModelProperty("折后金额")
+    private BigDecimal sellingPrice;
+
+
 }

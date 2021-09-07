@@ -82,6 +82,7 @@ public class AdminOrderAPI {
             if (endTime != null ) {
                 params.put("endTime",endTime);
             }
+            params.put("isDeleted",0);
             PageQueryUtil pageUtil = new PageQueryUtil(params);
             return ResultGenerator.genSuccessResult(orderService.getOrdersPage(pageUtil));
         }catch (java.lang.Exception e){
@@ -124,6 +125,7 @@ public class AdminOrderAPI {
             if (!StringUtils.isEmpty(endTime) ) {
                 params.put("endTime",endTime);
             }
+            params.put("isDeleted",0);
             PageQueryUtil pageUtil = new PageQueryUtil(params);
             orderService.exportOrdersList(pageUtil,response);
         }catch (java.lang.Exception e){
@@ -320,4 +322,27 @@ public class AdminOrderAPI {
         }
         return ResultGenerator.genFailResult("请稍后再试");
     }
+
+    @GetMapping("/order/item/detail/{itemId}")
+    @ApiOperation(value = "查询订单产品", notes = "传参为订单号")
+    public Result<OrderDetailVO> getItemDetail(@ApiParam(value = "订单号") @PathVariable("itemId") Long itemId) {
+        try {
+            return ResultGenerator.genSuccessResult(orderService.getItemDetail(itemId));
+        }catch (java.lang.Exception e){
+            logger.error("出异常：",e);
+        }
+        return ResultGenerator.genFailResult("请稍后再试");
+    }
+
+    @GetMapping("/order/delete/{orderId}")
+    @ApiOperation(value = "删除订单产品", notes = "传参为订单号")
+    public Result<OrderDetailVO> deleteOrder(@ApiParam(value = "订单号") @PathVariable("orderId") Long orderId) {
+        try {
+            return ResultGenerator.genSuccessResult(orderService.deleteOrder(orderId));
+        }catch (java.lang.Exception e){
+            logger.error("出异常：",e);
+        }
+        return ResultGenerator.genFailResult("请稍后再试");
+    }
+
 }

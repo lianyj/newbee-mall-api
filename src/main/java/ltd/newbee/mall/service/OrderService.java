@@ -7,6 +7,7 @@ import ltd.newbee.mall.api.mall.param.OrderItemParam;
 import ltd.newbee.mall.api.mall.vo.OrderDetailVO;
 import ltd.newbee.mall.api.mall.vo.OrderItemVO;
 import ltd.newbee.mall.entity.MallOrder;
+import ltd.newbee.mall.entity.OrderItem;
 import ltd.newbee.mall.util.PageQueryUtil;
 import ltd.newbee.mall.util.PageResult;
 import ltd.newbee.mall.util.Result;
@@ -44,7 +45,7 @@ public interface OrderService extends IService<MallOrder> {
      */
     String saveOrder(Long adminUserId, OrderDetailParam saveOrderParam);
 
-
+    String deleteOrder(Long orderId);
 
     /**
      * 订单信息修改
@@ -58,7 +59,6 @@ public interface OrderService extends IService<MallOrder> {
     /**
      * 关闭订单
      *
-     * @param ids
      * @return
      */
     String closeOrder(Long id);
@@ -66,6 +66,8 @@ public interface OrderService extends IService<MallOrder> {
     List<OrderItemVO> getOrderItems(Long orderId);
 
     String deleteItem(Long itemId);
+
+    OrderItem getItemDetail(Long itemId);
 
     String updateItem(Long adminUserId, OrderItemParam orderItemParam);
 

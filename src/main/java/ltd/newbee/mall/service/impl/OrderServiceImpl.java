@@ -97,7 +97,16 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
     }
 
 
-
+    @Override
+    public String deleteOrder(Long orderId){
+        MallOrder order = mallOrderMapper.selectById(orderId);
+        if (order == null) {
+            Exception.fail(ServiceResultEnum.DATA_NOT_EXIST.getResult());
+        }
+        order.setIsDeleted(1);
+        mallOrderMapper.updateById(order);
+        return ServiceResultEnum.SUCCESS.getResult();
+    }
 
     @Override
     public String saveOrder(Long adminUserId, OrderDetailParam saveOrderParam) {
@@ -289,6 +298,11 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         return ServiceResultEnum.SUCCESS.getResult();
     }
 
+    @Override
+    public OrderItem getItemDetail(Long itemId){
+        return  orderItemMapper.selectById(itemId);
+    }
+
     public void setTotalPrice(MallOrder mallOrder ){
         // 总价
         List<OrderItem> list = orderItemMapper.selectByOrderId(mallOrder.getOrderId());
@@ -324,9 +338,18 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         orderItem.setGoodsName(goodsInfo.getGoodsName());
         orderItem.setGoodsCount(orderItemParam.getGoodsCount());
         orderItem.setGoodsIntro(orderItemParam.getGoodsIntro());
-        orderItem.setOriginalPrice(goodsInfo.getOriginalPrice());
-        double cost = UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue();
-        orderItem.setSellingPrice(goodsInfo.getOriginalPrice().multiply(BigDecimal.valueOf(cost)));
+        if(!StringUtils.isEmpty(orderItemParam.getOriginalPrice())){
+            orderItem.setOriginalPrice(orderItemParam.getOriginalPrice());
+        }else {
+            orderItem.setOriginalPrice(goodsInfo.getOriginalPrice());
+        }
+        if(!StringUtils.isEmpty(orderItemParam.getSellingPrice())){
+            orderItem.setSellingPrice(orderItemParam.getSellingPrice());
+        }else {
+            double cost = UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue();
+            BigDecimal sellingPrice = goodsInfo.getOriginalPrice().multiply(BigDecimal.valueOf(cost));
+            orderItem.setSellingPrice(sellingPrice);
+        }
         orderItemMapper.updateById(orderItem);
         // 总价
         setTotalPrice(mallOrder);
@@ -355,9 +378,18 @@ public class OrderServiceImpl extends ServiceImpl<MallOrderMapper, MallOrder> im
         orderItem.setGoodsName(goodsInfo.getGoodsName());
         orderItem.setGoodsCount(orderItemParam.getGoodsCount());
         orderItem.setGoodsIntro(orderItemParam.getGoodsIntro());
-        orderItem.setOriginalPrice(goodsInfo.getOriginalPrice());
-        double cost = UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue();
-        orderItem.setSellingPrice(goodsInfo.getOriginalPrice().multiply(BigDecimal.valueOf(cost)));
+        if(!StringUtils.isEmpty(orderItemParam.getOriginalPrice())){
+            orderItem.setOriginalPrice(orderItemParam.getOriginalPrice());
+        }else {
+            orderItem.setOriginalPrice(goodsInfo.getOriginalPrice());
+        }
+        if(!StringUtils.isEmpty(orderItemParam.getSellingPrice())){
+            orderItem.setSellingPrice(orderItemParam.getSellingPrice());
+        }else {
+            double cost = UserLevelCostEnum.getUserLevelEnumByStatus(user.getUserLevel()).getValue();
+            BigDecimal sellingPrice = goodsInfo.getOriginalPrice().multiply(BigDecimal.valueOf(cost));
+            orderItem.setSellingPrice(sellingPrice);
+        }
         orderItem.setCreateTime(new Date());
         orderItemMapper.insert(orderItem);
         // 总价
